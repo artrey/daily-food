@@ -83,8 +83,12 @@ WSGI_APPLICATION = 'daily_food.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('POSTGRES_DB', default='daily_food'),
+        'USER': config('POSTGRES_USER', default='daily_food'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='daily_food'),
+        'HOST': config('POSTGRES_HOST', default='localhost'),
+        'PORT': config('POSTGRES_PORT', default=5432, cast=int),
     }
 }
 
@@ -133,3 +137,58 @@ STATIC_ROOT = BASE_DIR / 'static'
 
 if DEBUG:
     ALLOWED_HOSTS = ['*']
+
+    INTERNAL_IPS = [
+        '127.0.0.1',
+        'localhost',
+    ]
+
+    INSTALLED_APPS += [
+        'debug_toolbar',
+        'nplusone.ext.django',
+    ]
+
+    MIDDLEWARE = [
+                     'nplusone.ext.django.NPlusOneMiddleware',
+                 ] + MIDDLEWARE + [
+                     'debug_toolbar.middleware.DebugToolbarMiddleware',
+                     'querycount.middleware.QueryCountMiddleware',
+                 ]
+
+    import logging
+
+    logging.basicConfig()
+
+    NPLUSONE_LOGGER = logging.getLogger('nplusone')
+    NPLUSONE_LOG_LEVEL = logging.DEBUG
+
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{pathname}:{lineno} {levelname} {asctime} {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose'
+            },
+        },
+        'loggers': {
+            'nplusone': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            },
+            'apps': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            },
+            'django.db.backends': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            },
+        },
+    }

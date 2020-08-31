@@ -1,5 +1,6 @@
 import uuid
 
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -40,11 +41,25 @@ class FoodItem(models.Model):
         verbose_name=_('прием пищи'), related_name='food_items'
     )
     name = models.CharField(verbose_name=_('название'), max_length=64)
-    mass = models.IntegerField(
-        verbose_name=_('масса, г'), null=True, blank=True
+    mass = models.FloatField(
+        verbose_name=_('масса, г'), null=True, blank=True,
+        validators=[MinValueValidator(0)],
     )
-    energy = models.IntegerField(
-        verbose_name=_('энергия, кКал'), null=True, blank=True
+    carbs = models.FloatField(
+        verbose_name=_('белки, г'), null=True, blank=True,
+        validators=[MinValueValidator(0)],
+    )
+    fats = models.FloatField(
+        verbose_name=_('жиры, г'), null=True, blank=True,
+        validators=[MinValueValidator(0)],
+    )
+    proteins = models.FloatField(
+        verbose_name=_('углеводы, г'), null=True, blank=True,
+        validators=[MinValueValidator(0)],
+    )
+    energy = models.FloatField(
+        verbose_name=_('энергия, кКал'), null=True, blank=True,
+        validators=[MinValueValidator(0)],
     )
 
     def __str__(self) -> str:

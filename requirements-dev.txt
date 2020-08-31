@@ -1,0 +1,3 @@
+django-debug-toolbar
+nplusone
+django-querycount
