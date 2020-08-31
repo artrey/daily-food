@@ -1,10 +1,78 @@
+{% load food_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Daily food diary</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      padding: 0.4em 0;
+    }
+
+    canvas {
+      width: 100%;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 </head>
 <body>
+<h1>
   <a href="{% url 'admin:index' %}">Заполнить дневник</a>
+</h1>
+<canvas id="energy"></canvas>
+
+<script>
+  var ctx = document.getElementById('energy').getContext('2d');
+  var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [
+        {% for day in data %}
+          '{{ day|first|date }}',
+        {%  endfor %}
+      ],
+      datasets: [
+        {% for param in 'Масса, г|mass;Белки, г|carbs;Жиры, г|fats;Углеводы, г|proteins;Энергия, кКал|energy'|split:';' %}
+          {% with info=param|split:'|' %}
+            {
+              label: '{{ info.0 }}',
+              data: [
+                {% for day in data %}
+                  {{ day|last|getitem:info.1|round }},
+                {%  endfor %}
+              ],
+              backgroundColor: '{% cycle 'lightcoral' 'lightgreen' 'lightblue' 'lightpink' 'yellow' %}',
+            },
+          {% endwith %}
+        {% endfor %}
+      ]
+    },
+    options: {
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: true
+          }
+        }]
+      }
+    }
+  });
+</script>
 </body>
 </html>

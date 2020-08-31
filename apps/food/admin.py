@@ -28,8 +28,8 @@ class EatingActionAdmin(admin.ModelAdmin):
         'energy': _('общая энергия, кКал'),
     }
 
-    list_display = 'date', *tuple(annotated_fields.keys()), 'comment',
-    list_filter = 'date',
+    list_display = 'time_moment', *tuple(annotated_fields.keys()), 'comment',
+    list_filter = 'time_moment',
     readonly_fields = tuple(annotated_fields.keys())
     inlines = FoodItemInline,
 
