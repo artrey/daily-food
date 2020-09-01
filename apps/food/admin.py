@@ -3,6 +3,7 @@ from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
 
 from . import models
+from . import forms
 
 
 class FoodItemInline(admin.StackedInline):
@@ -15,6 +16,7 @@ def build_admin_field(name: str, description: str) -> callable:
         return getattr(obj, name) or 0
     func.__name__ = name
     func.short_description = description
+    func.admin_order_field = name
     return func
 
 
@@ -32,6 +34,7 @@ class EatingActionAdmin(admin.ModelAdmin):
     list_filter = 'time_moment',
     readonly_fields = tuple(annotated_fields.keys())
     inlines = FoodItemInline,
+    form = forms.EatingActionCreateForm
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -41,7 +44,13 @@ class EatingActionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
+        qs = qs.filter(user=request.user)
         annotates = {
             name: Sum(f'food_items__{name}') for name in self.annotated_fields
         }
         return qs.annotate(**annotates)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.user_id:
+            obj.user = request.user
+        super().save_model(request, obj, form, change)

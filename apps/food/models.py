@@ -1,10 +1,14 @@
 import uuid
 
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db import connection
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+
+User = get_user_model()
 
 
 class EatingAction(models.Model):
@@ -17,6 +21,10 @@ class EatingAction(models.Model):
         verbose_name=_('идентификатор'), primary_key=True,
         editable=False, default=uuid.uuid4
     )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        verbose_name=_('пользователь'), related_name='eating_actions'
+    )
     time_moment = models.DateTimeField(
         verbose_name=_('время приема пищи'), default=timezone.now
     )
@@ -25,7 +33,7 @@ class EatingAction(models.Model):
     )
 
     @classmethod
-    def get_by_date(cls):
+    def get_by_date(cls, user):
         fields = 'mass', 'carbs', 'fats', 'proteins', 'energy',
 
         annotations = ','.join(f'SUM("food_fooditem"."{field}") AS "{field}"'
@@ -37,16 +45,15 @@ class EatingAction(models.Model):
             AT TIME ZONE 'Europe/Moscow') AS "day", {annotations}
             FROM "food_eatingaction" LEFT OUTER JOIN "food_fooditem"
             ON ("food_eatingaction"."id" = "food_fooditem"."eating_action_id")
+            WHERE "food_eatingaction"."user_id" = %s
             GROUP BY DATE_TRUNC('day', "food_eatingaction"."time_moment"
             AT TIME ZONE 'Europe/Moscow') ORDER BY "day";
-            ''')
+            ''', (user.id,))
 
             return list(map(
                 lambda x: (x[0], {f: x[i + 1] for i, f in enumerate(fields)}),
                 cursor.fetchall()
             ))
-
-
 
     def __str__(self) -> str:
         return self.time_moment.strftime('%Y-%m-%d %H:%M:%S')
