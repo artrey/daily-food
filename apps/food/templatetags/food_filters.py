@@ -10,8 +10,8 @@ def getitem(dict_obj: dict, key: str):
 
 
 @register.filter
-def round(value: float) -> int:
-    return int(value)
+def dotted_string(value: float, after_dot: int = 1) -> str:
+    return str(round(value, after_dot)).replace(',', '.')
 
 
 @register.filter

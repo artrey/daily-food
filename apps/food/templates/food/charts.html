@@ -20,7 +20,7 @@
     h1 {
       text-align: center;
       font-size: 1.8em;
-      padding: 0.4em 0;
+      margin: 0.6em 0;
     }
 
     .canvas-container {
@@ -43,9 +43,6 @@
   <div class="canvas-container">
     <canvas id="cfp"></canvas>
   </div>
-  <div class="canvas-container">
-    <canvas id="cfp2"></canvas>
-  </div>
 </div>
 
 <script>
@@ -62,7 +59,7 @@
         label: 'Энергия, кКал',
         data: [
           {% for day in data %}
-            {{ day|last|getitem:'energy'|round }},
+            {{ day|last|getitem:'energy'|dotted_string }},
           {%  endfor %}
         ],
         backgroundColor: 'yellow',
@@ -95,47 +92,7 @@
               label: '{{ info.0 }}',
               data: [
                 {% for day in data %}
-                  {{ day|last|getitem:info.1|round }},
-                {%  endfor %}
-              ],
-              backgroundColor: '{% cycle 'lightgreen' 'lightcoral' 'lightblue' %}',
-            },
-          {% endwith %}
-        {% endfor %}
-      ]
-    },
-    options: {
-      scales: {
-        xAxes: [{
-          stacked: true,
-        }],
-        yAxes: [{
-          ticks: {
-            beginAtZero: true
-          },
-          stacked: true,
-        }],
-      }
-    }
-  });
-
-  var cfp2Ctx = document.getElementById('cfp2').getContext('2d');
-  new Chart(cfp2Ctx, {
-    type: 'bar',
-    data: {
-      labels: [
-        {% for day in data %}
-          '{{ day|first|date }}',
-        {%  endfor %}
-      ],
-      datasets: [
-        {% for param in 'Белки, г|carbs;Жиры, г|fats;Углеводы, г|proteins'|split:';' %}
-          {% with info=param|split:'|' %}
-            {
-              label: '{{ info.0 }}',
-              data: [
-                {% for day in data %}
-                  {{ day|last|getitem:info.1|round }},
+                  {{ day|last|getitem:info.1|dotted_string }},
                 {%  endfor %}
               ],
               backgroundColor: '{% cycle 'lightgreen' 'lightcoral' 'lightblue' %}',
