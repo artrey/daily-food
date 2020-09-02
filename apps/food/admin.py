@@ -20,8 +20,7 @@ def build_admin_field(name: str, description: str) -> callable:
     return func
 
 
-@admin.register(models.EatingAction)
-class EatingActionAdmin(admin.ModelAdmin):
+class AnnotatedMixin:
     annotated_fields = {
         'mass': _('общая масса, г'),
         'carbs': _('сумма белков, г'),
@@ -30,11 +29,8 @@ class EatingActionAdmin(admin.ModelAdmin):
         'energy': _('общая энергия, кКал'),
     }
 
-    list_display = 'time_moment', *tuple(annotated_fields.keys()), 'comment',
-    list_filter = 'time_moment',
+    list_display = tuple(annotated_fields.keys())
     readonly_fields = tuple(annotated_fields.keys())
-    inlines = FoodItemInline,
-    form = forms.EatingActionCreateForm
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,15 +38,43 @@ class EatingActionAdmin(admin.ModelAdmin):
         for name, description in self.annotated_fields.items():
             setattr(self, name, build_admin_field(name, description))
 
+
+@admin.register(models.EatingAction)
+class EatingActionAdmin(AnnotatedMixin, admin.ModelAdmin):
+    list_display = 'time_moment', *AnnotatedMixin.list_display, 'comment',
+    inlines = FoodItemInline,
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        if not request.user.is_superuser:
+            return forms.EatingActionCreateForm
+        return super().get_form(request, obj, change, **kwargs)
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = qs.filter(user=request.user)
+        if not request.user.is_superuser:
+            qs = qs.filter(user=request.user)
         annotates = {
             name: Sum(f'food_items__{name}') for name in self.annotated_fields
         }
         return qs.annotate(**annotates)
 
-    def save_model(self, request, obj, form, change):
-        if not obj.user_id:
-            obj.user = request.user
-        super().save_model(request, obj, form, change)
+
+class EatingActionInline(admin.StackedInline):
+    model = models.EatingAction
+    extra = 0
+
+
+@admin.register(models.WakingDay)
+class WakingDayAdmin(AnnotatedMixin, admin.ModelAdmin):
+    list_display = 'day', *AnnotatedMixin.list_display, 'comment',
+    inlines = EatingActionInline,
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if not request.user.is_superuser:
+            qs = qs.filter(user=request.user)
+        annotates = {
+            name: Sum(f'eating_actions__food_items__{name}')
+            for name in self.annotated_fields
+        }
+        return qs.annotate(**annotates)

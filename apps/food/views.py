@@ -6,9 +6,18 @@ from apps.food import models
 
 
 @login_required(login_url=reverse_lazy('admin:login'))
+def add_view(request):
+    context = {
+        'data': models.EatingAction.get_by_date(
+            request.user
+        )
+    }
+    return render(request, 'food/add.html', context=context)
+
+
+@login_required(login_url=reverse_lazy('admin:login'))
 def charts_view(request):
     context = {
         'data': models.EatingAction.get_by_date(request.user)
     }
-    print(context)
     return render(request, 'food/charts.html', context=context)
