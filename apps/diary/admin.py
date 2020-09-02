@@ -6,6 +6,11 @@ from . import models
 from . import forms
 
 
+@admin.register(models.UserDiaryParams)
+class UserDiaryParamsAdmin(admin.ModelAdmin):
+    list_display = 'user', 'normal_daily_energy',
+
+
 class FoodItemInline(admin.StackedInline):
     model = models.FoodItem
     extra = 0

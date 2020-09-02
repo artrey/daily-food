@@ -4,11 +4,40 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db import connection
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
 User = get_user_model()
+
+
+class UserDiaryParams(models.Model):
+    class Meta:
+        verbose_name = _('настройки пользователя')
+        verbose_name_plural = _('настройки пользователей')
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='diary_params',
+        primary_key=True, verbose_name=_('пользователь'),
+    )
+    normal_daily_energy = models.DecimalField(
+        verbose_name=_('суточная норма, кКал'), null=True, blank=True,
+        max_digits=12, decimal_places=2,
+        validators=[MinValueValidator(0)],
+    )
+
+    def __str__(self) -> str:
+        return str(self.user)
+
+
+@receiver(post_save, sender=User, dispatch_uid='create_user_diary_params')
+def create_user_diary_params(instance: User, created: bool, **kwargs):
+    if not created:
+        return
+
+    UserDiaryParams.objects.create(user=instance)
 
 
 def now_day_with_tz():
