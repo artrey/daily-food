@@ -6,5 +6,5 @@ from . import views
 app_name = 'diary'
 
 urlpatterns = [
-    path('waking_day/<pk>/', views.WakingDayView.as_view(), name='waking_day'),
+    # path('waking_day/<pk>/', views.WakingDayView.as_view(), name='waking_day'),
 ]

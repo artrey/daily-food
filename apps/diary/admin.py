@@ -11,11 +11,6 @@ class UserDiaryParamsAdmin(admin.ModelAdmin):
     list_display = 'user', 'normal_daily_energy',
 
 
-class FoodItemInline(admin.StackedInline):
-    model = models.FoodItem
-    extra = 0
-
-
 def build_admin_field(name: str, description: str) -> callable:
     def func(obj):
         return getattr(obj, name) or 0
@@ -27,11 +22,10 @@ def build_admin_field(name: str, description: str) -> callable:
 
 class AnnotatedMixin:
     annotated_fields = {
-        'mass': _('общая масса, г'),
         'carbs': _('сумма белков, г'),
         'fats': _('сумма жиров, г'),
         'proteins': _('сумма углеводов, г'),
-        'energy': _('общая энергия, кКал'),
+        'calories': _('общая энергия, кКал'),
     }
 
     list_display = tuple(annotated_fields.keys())
@@ -42,6 +36,12 @@ class AnnotatedMixin:
 
         for name, description in self.annotated_fields.items():
             setattr(self, name, build_admin_field(name, description))
+
+
+class FoodItemInline(admin.StackedInline):
+    model = models.EatingAction.food_items.through
+    extra = 0
+
 
 
 @admin.register(models.EatingAction)
