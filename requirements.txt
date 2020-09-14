@@ -3,3 +3,4 @@ python-decouple
 psycopg2-binary
 djangorestframework
 djangorestframework-simplejwt
+python-telegram-bot

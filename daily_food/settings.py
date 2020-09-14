@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     'apps.food',
     'apps.diary',
+    'apps.tgbot',
 ]
 
 MIDDLEWARE = [
@@ -137,6 +138,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
+
+TG_DEVELOPER_CHAT_ID = config('TG_DEVELOPER_CHAT_ID', default=''),
 
 if DEBUG:
     ALLOWED_HOSTS = ['*']
